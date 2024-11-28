@@ -1,5 +1,7 @@
 #include "main.h"
 #include "FreeRTOS.h"
+#include "MDR32F9Qx_usb_CDC.h"
+#include "system_MDR32F9Qx.h"
 #include "task.h"
 // #include "queue.h"
 // #include "timers.h"
@@ -51,30 +53,22 @@ void init_LEDs() {
   PORT_Init(MDR_PORTB, &GPIO_init_struct);
 }
 
-
-void vDefaultTask (void * pvParameters) {
-  for ( ;; ) {
-    vTaskDelay(1);
-  }
-  vTaskDelete(NULL);
-}
-
 void vBlinkyTask (void * pvParameters) {
   bool pin_state = false;
+  char boofrx[32];
+  init_USB((uint8_t*)boofrx);
   for ( ;; ) {
     vTaskDelay(500);
     PORT_WriteBit(MDR_PORTB, PORT_Pin_0, pin_state);
     pin_state = !pin_state;
+    USB_CDC_SendData((uint8_t*)&SystemCoreClock, 4);
   }
   vTaskDelete(NULL);
 }
-// TODO
-// 1) blinky
-// 2) joystick exti
 
 int main() {
-// задержка для того, чтобы контроллер успел войти в режим отладки
   for (uint32_t del = 0 ; del < 1000000; del++) {
+    // delay to prevent accidentaly blocking JTAGS
     __NOP();
   }
   init_CPU();
