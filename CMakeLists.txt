@@ -40,7 +40,6 @@ file(GLOB_RECURSE C_LIBS CONFIGURE_DEPENDS lib/CMSIS/*.c
 
 set(INCLUDE_DIRS
     src
-    src/freertos
     lib
     lib/Config
     lib/CMSIS/CM3/DeviceSupport/MDR32F9Qx/inc
@@ -67,8 +66,6 @@ set(COMP_OPTS
   -Wshadow
   -Wno-missing-field-initializers
   -Wno-cpp
-  # -Wredundant-decls
-  # -Wconversion
   -Wno-packed-bitfield-compat
   -pipe
   -MMD
@@ -79,7 +76,6 @@ set(LINK_OPTS
   ${LINKER_SCRIPT}
   -mcpu=${MCPU}
   -mthumb
-  # -lm --specs=nano.specs
   -lm
   -lnosys
   --specs=nosys.specs
@@ -96,20 +92,18 @@ add_executable(${TARGET_NAME} ${C_SRC} ${C_LIBS} ${STARTUP_SCRIPT} ${LINKER_SCRI
 target_compile_definitions(${TARGET_NAME} PRIVATE ${COMP_DEFS})
 target_compile_options(${TARGET_NAME} PRIVATE ${COMP_OPTS})
 target_link_options(${TARGET_NAME} PRIVATE ${LINK_OPTS})
-# add_compile_definitions(${COMP_DEFS})
-# add_compile_options(${COMP_OPTS})
-# add_link_options(${LINK_OPTS})
 target_link_libraries(${TARGET_NAME} m)
 target_include_directories(${TARGET_NAME} PRIVATE ${INCLUDE_DIRS})
 
 # -----FREERTOS------------
+set(FREERTOS_CONFIG_H_PATH src/freertos)
 set(FREERTOS_KERNEL_PATH lib/FreeRTOS-Kernel)
 set(FREERTOS_COMP_DEFS projCOVERAGE_TEST=0)
 set(FREERTOS_HEAP "1" CACHE STRING "" FORCE)
 set(FREERTOS_PORT "GCC_ARM_CM3" CACHE STRING "" FORCE)
 
 add_library(freertos_config INTERFACE)
-target_include_directories(freertos_config INTERFACE src/freertos)
+target_include_directories(freertos_config INTERFACE ${FREERTOS_CONFIG_H_PATH})
 add_subdirectory(${FREERTOS_KERNEL_PATH} lib/FreeRTOS-Kernel)
 
 target_compile_definitions(freertos_config INTERFACE ${FREERTOS_COMP_DEFS})
@@ -141,3 +135,4 @@ add_custom_command(
           ${BIN_FILE}
   COMMENT "Building ${HEX_FILE}
     Building ${BIN_FILE}")
+
